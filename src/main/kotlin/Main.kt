@@ -1,60 +1,33 @@
-interface Attachment{
-    val type: String
-}
+sealed class Attachment(val type: String, val id: Int = 0)
 
 data class Photo(
-    val id: Int = 0,
     val ownerId: Int = 0,
     val photo130: String = "",
     val photo604: String = ""
-)
-
-data class AttachmentPhoto(val photo: Photo) : Attachment{
-    override val type: String = "photo"
-}
+) : Attachment("video")
 
 data class Graffiti(
-    val id: Int = 0,
     val ownerId: Int = 0,
     val photo130: String = "",
     val photo604: String = ""
-)
-
-data class AttachmentGraffiti(val graffiti: Graffiti) : Attachment{
-    override val type: String = "graffiti"
-}
+) : Attachment("graffiti")
 
 data class App(
-    val id: Int = 0,
     val ownerId: Int = 0,
     val photo130: String = "",
     val photo604: String = ""
-)
-
-data class AttachmentApp(val app: App) : Attachment{
-    override val type: String = "app"
-}
+) : Attachment("app")
 
 data class Page(
-    val id: Int = 0,
     val groupId: Int = 0,
     val title: String = ""
-)
-
-data class AttachmentPage(val page: Page) : Attachment{
-    override val type: String = "page"
-}
+) : Attachment("page")
 
 data class Event(
-    val id: Int = 0,
     val time: Long = 0,
     val memberStatus: Int = 0,
     val text: String = ""
-)
-
-data class AttachmentEvent(val event: Event) : Attachment{
-    override val type: String = "event"
-}
+) : Attachment("event")
 
 data class Counter(var id: Int = 0){
     fun add(): Int {
@@ -146,7 +119,7 @@ object WallService{
 }
 
 fun main() {
-    val post_test = Post(1, 376, 56, 1692333801, "Начало", arrayOf(AttachmentEvent(Event()), AttachmentPhoto(Photo())), likes = Counter(100))
+    val post_test = Post(1, 376, 56, 1692333801, "Начало", arrayOf(Event(), Photo()), likes = Counter(100))
     val post1 = WallService.add(post_test).also { println(it) }
     println(post1.likes?.add())
     println(post1.likes?.add())
