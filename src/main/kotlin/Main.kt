@@ -1,16 +1,44 @@
+data class Counter(var id: Int = 0){
+    fun add(): Int {
+        id++
+        return size()
+    }
+    fun size(): Int {
+        return id
+    }
+}
+
+class Geo(
+    type: String = "",
+    coordinates: String = ""
+)
+
 data class Post(
-    var id: Int = 0, //1
-    val ownerId: Int, //2
-    val fromId: Int, //3
-    val date: Long, //4
-    val text: String, //5
-    val reply_post_id: Int, //6
-    val post_type: String = "starter", //7
-    val can_pin: Boolean = false, //8
-    val can_delete: Boolean = false, //9
-    val can_edit: Boolean = false, //10
-    val comments: Comments, //Объект
-    var likes: Likes, //Объект
+    var id: Int = 0, // Идентификатор записи
+    val ownerId: Int, // Идентификатор владельца стены, на которой размещена запись
+    val fromId: Int, // Идентификатор автора записи
+    val date: Long, // Дата публикации в формате unixtime
+    val text: String, // Текст записи
+    val createdBy: Int = 0,
+    val replyOwnerId: Int = 0, // Идентификатор владельца записи, в ответ на которую была добавлена текущая
+    val reply_post_id: Int = 0, // Идентификатор записи, в ответ на которую была добавлена текущая
+    val friendsOnly: Boolean = false, // True, если запись была оставлена "Только для друзей"
+    val comments: Counter = Counter(), // Информация о комментариях к записи
+    val likes: Counter? = null,
+    val reposts: Counter = Counter(),
+    val views:  Counter = Counter(),
+    val copyright: String = "",
+    val post_type: String = "post",
+    val postSource: String = "",
+    val geo: Geo? = null,
+    val singerId: Int = 0,
+    val can_pin: Boolean = false,
+    val can_delete: Boolean = false,
+    val can_edit: Boolean = false,
+    val isPinned: Boolean = false,
+    val markedAsAds: Boolean = false,
+    val isFavorite: Boolean = false,
+    val postponedId: Int=0,
 )
 
 object WallService{
@@ -18,15 +46,25 @@ object WallService{
     private var id = 0
 
     fun add(post: Post): Post{
-        post.id = ++id
-        posts += post
+        posts += post.copy(
+            id = ++id,
+            comments = post.comments.copy(),
+            likes = post.likes?.copy(),
+            reposts = post.reposts.copy(),
+            views = post.views.copy(),
+        )
         return posts.last()
     }
 
     fun update(post: Post): Boolean {
         for((index, postToUpdate) in posts.withIndex()){
             if(post.id == postToUpdate.id){
-                posts[index] = post
+                posts[index] = post.copy(
+                    comments = post.comments.copy(),
+                    likes = post.likes?.copy(),
+                    reposts = post.reposts.copy(),
+                    views = post.views.copy(),
+                    )
                 return true
             }
         }
@@ -46,61 +84,16 @@ object WallService{
         posts = emptyArray()
         id = 0
     }
-
-}
-
-data class Comment(
-    val ownerId: Int,
-    val text: String,
-)
-
-class Comments(){
-    private var comments = emptyArray<Comment>()
-
-    fun add(comment: Comment): Comment {
-        comments += comment
-        return comments.last()
-    }
-
-    fun size(): Int {
-        return comments.size
-    }
-}
-
-data class Like(
-    val ownerId: Int,
-)
-
-class Likes{
-    private var likes = emptyArray<Like>()
-
-    fun add(ownerId: Int): Like {
-        likes += Like(ownerId)
-        return likes.last()
-    }
-
-    fun size(): Int {
-        return likes.size
-    }
 }
 
 fun main() {
-    val post1 = WallService.add(Post(1, 376, 56, 1692333801, "Начало", 12, "regular", true, true, true, Comments(), Likes()))
-    val post2 = WallService.add(Post(1, 242, 56, 1692420201, "Конец", 3, "regular", true, true, true, Comments(), Likes()))
-    println(post1)
-    println(post2)
-    println(post1.likes.add(242))
-    println(post1.likes.add(376))
-    println(post1.likes.size())
-    println("Текст поста: ${post1.text}")
-    println(post1.comments.add(Comment(242, "Отличное начало")))
-    println(post2.likes.add(242))
-    println(post2.likes.add(376))
-    println(post2.likes.add(12))
-    println(post2.likes.add(25))
-    println(post2.likes.size())
-    println("Текст поста: ${post2.text}")
-    println(post1.comments.add(Comment(376, "Конец, конец. Концы в воду!")))
-    println(WallService.update(Post(1, 376, 56, 1692333801, "Самое начало", 12, "regular", true, true, true, Comments(), Likes())))
-    println(WallService.getById(1))
+    val post_test = Post(1, 376, 56, 1692333801, "Начало", likes = Counter(100))
+    val post1 = WallService.add(post_test).also { println(it) }
+    println(post1.likes?.add())
+    println(post1.likes?.add())
+    println(post1.likes?.add())
+    println(post1.likes?.size())
+
+    val post2 = WallService.add(Post(2, 34, 67, 1692333801, "Начало2")).also { println(it) }
+    println(post2.likes?.add())
 }
