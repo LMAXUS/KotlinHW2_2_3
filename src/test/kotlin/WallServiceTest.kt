@@ -17,12 +17,12 @@ class WallServiceTest {
     fun updateIdExists() {
         val post = WallService.add(Post(0, 376, 56, 1692333801, "Начало", 12, "regular", true, true, true, Comments(), Likes()))
         val result = WallService.update(Post(1, 376, 56, 1692333801, "Самое начало", 12, "regular", true, true, true, Comments(), Likes()))
-        assertEquals(true, result)
+        assertTrue(result)
     }
     @Test
     fun updateIdDosntExists() {
         val post = WallService.add(Post(0, 376, 56, 1692333801, "Начало", 12, "regular", true, true, true, Comments(), Likes()))
         val result = WallService.update(Post(10, 376, 56, 1692333801, "Самое начало", 12, "regular", true, true, true, Comments(), Likes()))
-        assertEquals(false, result)
+        assertFalse(result)
     }
 }

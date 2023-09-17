@@ -9,8 +9,8 @@ data class Post(
     val can_pin: Boolean = false, //8
     val can_delete: Boolean = false, //9
     val can_edit: Boolean = false, //10
-    val comments: Comments, //Объект
-    var likes: Likes, //Объект
+    val comments: Comments = Comments(), //Объект
+    val likes: Likes = Likes(), //Объект
 )
 
 object WallService{
@@ -18,15 +18,14 @@ object WallService{
     private var id = 0
 
     fun add(post: Post): Post{
-        post.id = ++id
-        posts += post
+        posts += post.copy(id = ++id)
         return posts.last()
     }
 
     fun update(post: Post): Boolean {
         for((index, postToUpdate) in posts.withIndex()){
             if(post.id == postToUpdate.id){
-                posts[index] = post
+                posts[index] = post.copy()
                 return true
             }
         }
@@ -58,7 +57,7 @@ class Comments(){
     private var comments = emptyArray<Comment>()
 
     fun add(comment: Comment): Comment {
-        comments += comment
+        comments += comment.copy()
         return comments.last()
     }
 
@@ -85,8 +84,9 @@ class Likes{
 }
 
 fun main() {
-    val post1 = WallService.add(Post(1, 376, 56, 1692333801, "Начало", 12, "regular", true, true, true, Comments(), Likes()))
-    val post2 = WallService.add(Post(1, 242, 56, 1692420201, "Конец", 3, "regular", true, true, true, Comments(), Likes()))
+    val post_test = Post(1, 376, 56, 1692333801, "Начало", 12, "regular", true, true, true)
+    val post1 = WallService.add(post_test)
+    val post2 = WallService.add(Post(1, 242, 56, 1692420201, "Конец", 3, "regular", true, true, true))
     println(post1)
     println(post2)
     println(post1.likes.add(242))
