@@ -1,11 +1,10 @@
-class Counter{
-    var count: Int = 0
+data class Counter(var id: Int = 0){
     fun add(): Int {
-        count++
+        id++
         return size()
     }
     fun size(): Int {
-        return count
+        return id
     }
 }
 
@@ -24,13 +23,13 @@ data class Post(
     val replyOwnerId: Int = 0, // Идентификатор владельца записи, в ответ на которую была добавлена текущая
     val reply_post_id: Int = 0, // Идентификатор записи, в ответ на которую была добавлена текущая
     val friendsOnly: Boolean = false, // True, если запись была оставлена "Только для друзей"
-    val comments: Counter? = null, // Информация о комментариях к записи
-    val copyright: String = "",
+    val comments: Counter = Counter(), // Информация о комментариях к записи
     val likes: Counter? = null,
-    val reposts: Counter? = null,
-    val views:  Counter? = null,
+    val reposts: Counter = Counter(),
+    val views:  Counter = Counter(),
+    val copyright: String = "",
     val post_type: String = "post",
-    val postSource: String? = "",
+    val postSource: String = "",
     val geo: Geo? = null,
     val singerId: Int = 0,
     val can_pin: Boolean = false,
@@ -47,7 +46,13 @@ object WallService{
     private var id = 0
 
     fun add(post: Post): Post{
-        posts += post.copy(id = ++id)
+        posts += post.copy(
+            id = ++id,
+            comments = post.comments.copy(),
+            likes = post.likes?.copy(),
+            reposts = post.reposts.copy(),
+            views = post.views.copy(),
+        )
         return posts.last()
     }
 
@@ -77,7 +82,7 @@ object WallService{
 }
 
 fun main() {
-    val post_test = Post(1, 376, 56, 1692333801, "Начало", likes = Counter())
+    val post_test = Post(1, 376, 56, 1692333801, "Начало", likes = Counter(100))
     val post1 = WallService.add(post_test).also { println(it) }
     println(post1.likes?.add())
     println(post1.likes?.add())
