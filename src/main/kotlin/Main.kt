@@ -1,3 +1,61 @@
+interface Attachment{
+    val type: String
+}
+
+data class Photo(
+    val id: Int = 0,
+    val ownerId: Int = 0,
+    val photo130: String = "",
+    val photo604: String = ""
+)
+
+data class AttachmentPhoto(val photo: Photo) : Attachment{
+    override val type: String = "photo"
+}
+
+data class Graffiti(
+    val id: Int = 0,
+    val ownerId: Int = 0,
+    val photo130: String = "",
+    val photo604: String = ""
+)
+
+data class AttachmentGraffiti(val graffiti: Graffiti) : Attachment{
+    override val type: String = "graffiti"
+}
+
+data class App(
+    val id: Int = 0,
+    val ownerId: Int = 0,
+    val photo130: String = "",
+    val photo604: String = ""
+)
+
+data class AttachmentApp(val app: App) : Attachment{
+    override val type: String = "app"
+}
+
+data class Page(
+    val id: Int = 0,
+    val groupId: Int = 0,
+    val title: String = ""
+)
+
+data class AttachmentPage(val page: Page) : Attachment{
+    override val type: String = "page"
+}
+
+data class Event(
+    val id: Int = 0,
+    val time: Long = 0,
+    val memberStatus: Int = 0,
+    val text: String = ""
+)
+
+data class AttachmentEvent(val event: Event) : Attachment{
+    override val type: String = "event"
+}
+
 data class Counter(var id: Int = 0){
     fun add(): Int {
         id++
@@ -19,6 +77,7 @@ data class Post(
     val fromId: Int, // Идентификатор автора записи
     val date: Long, // Дата публикации в формате unixtime
     val text: String, // Текст записи
+    val attachments: Array<Attachment> = emptyArray<Attachment>(),
     val createdBy: Int = 0,
     val replyOwnerId: Int = 0, // Идентификатор владельца записи, в ответ на которую была добавлена текущая
     val reply_post_id: Int = 0, // Идентификатор записи, в ответ на которую была добавлена текущая
@@ -87,7 +146,7 @@ object WallService{
 }
 
 fun main() {
-    val post_test = Post(1, 376, 56, 1692333801, "Начало", likes = Counter(100))
+    val post_test = Post(1, 376, 56, 1692333801, "Начало", arrayOf(AttachmentEvent(Event()), AttachmentPhoto(Photo())), likes = Counter(100))
     val post1 = WallService.add(post_test).also { println(it) }
     println(post1.likes?.add())
     println(post1.likes?.add())
