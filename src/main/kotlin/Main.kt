@@ -1,3 +1,7 @@
+import java.lang.RuntimeException
+
+class PostNotFoundException(message: String): RuntimeException(message)
+
 sealed class Attachment(val type: String, val id: Int = 0)
 
 data class Photo(
@@ -29,103 +33,87 @@ data class Event(
     val text: String = ""
 ) : Attachment("event")
 
-data class Counter(var id: Int = 0){
+class Counter(){
+    var qty = 0
     fun add(): Int {
-        id++
-        return size()
+        qty++
+        return qty()
     }
-    fun size(): Int {
-        return id
+    fun qty(): Int {
+        return qty
     }
 }
 
-class Geo(
-    type: String = "",
-    coordinates: String = ""
-)
-
-data class Post(
+// Базовый класс для сообщений
+open class Post(
     var id: Int = 0, // Идентификатор записи
-    val ownerId: Int, // Идентификатор владельца стены, на которой размещена запись
     val fromId: Int, // Идентификатор автора записи
     val date: Long, // Дата публикации в формате unixtime
-    val text: String, // Текст записи
-    val attachments: Array<Attachment> = emptyArray<Attachment>(),
-    val createdBy: Int = 0,
-    val replyOwnerId: Int = 0, // Идентификатор владельца записи, в ответ на которую была добавлена текущая
-    val reply_post_id: Int = 0, // Идентификатор записи, в ответ на которую была добавлена текущая
-    val friendsOnly: Boolean = false, // True, если запись была оставлена "Только для друзей"
-    val comments: Counter = Counter(), // Информация о комментариях к записи
-    val likes: Counter? = null,
-    val reposts: Counter = Counter(),
-    val views:  Counter = Counter(),
-    val copyright: String = "",
-    val post_type: String = "post",
-    val postSource: String = "",
-    val geo: Geo? = null,
-    val singerId: Int = 0,
-    val can_pin: Boolean = false,
-    val can_delete: Boolean = false,
-    val can_edit: Boolean = false,
-    val isPinned: Boolean = false,
-    val markedAsAds: Boolean = false,
-    val isFavorite: Boolean = false,
-    val postponedId: Int=0,
+    var text: String, // Текст записи
+    var attachments: Array<Attachment> = emptyArray<Attachment>(), // Вложения разного рода
+    var deleted: Boolean = false, // Пост удален
 )
 
+// Класс для комментариев, наследуется от Post
+class Comment(
+    id: Int = 0, // Идентификатор записи
+    fromId: Int, // Идентификатор автора записи
+    date: Long, // Дата публикации в формате unixtime
+    text: String, // Текст записи
+    attachments: Array<Attachment> = emptyArray<Attachment>(), // Вложения разного рода
+    val replyPostId: Int, // Идентификатор записи, в ответ на которую была добавлена текущая
+): Post(id, fromId, date, text, attachments)
+
 object WallService{
-    private var posts = emptyArray<Post>()
-    private var id = 0
+    private var posts = mutableListOf<Post>()
+    private var comments = mutableListOf<Comment>()
 
-    fun add(post: Post): Post{
-        posts += post.copy(
-            id = ++id,
-            comments = post.comments.copy(),
-            likes = post.likes?.copy(),
-            reposts = post.reposts.copy(),
-            views = post.views.copy(),
-        )
-        return posts.last()
+    private fun postExists(id: Int){
+        if (id >= posts.size) throw PostNotFoundException("Не существует поста с id: $id")
     }
 
-    fun update(post: Post): Boolean {
-        for((index, postToUpdate) in posts.withIndex()){
-            if(post.id == postToUpdate.id){
-                posts[index] = post.copy(
-                    comments = post.comments.copy(),
-                    likes = post.likes?.copy(),
-                    reposts = post.reposts.copy(),
-                    views = post.views.copy(),
-                    )
-                return true
-            }
-        }
-        return false
+    fun addPost(
+        fromId: Int, // Идентификатор автора записи
+        text: String, // Текст записи
+        attachments: Array<Attachment> = emptyArray<Attachment>(), // Вложения разного рода
+        ): Post{
+            posts += Post(posts.size, fromId, System.currentTimeMillis(), text, attachments)
+            return posts.last()
     }
 
-    fun getById(id: Int): Any{
-        for(post in posts){
-            if(post.id == id){
-                return post
-            }
-        }
-        return false
+    fun getPost(id: Int): Post{
+        postExists(id)
+        return posts[id]
+    }
+
+    fun deletePost(id: Int){
+        postExists(id)
+        posts[id].deleted = true
+    }
+
+    fun addComment(
+        replyPostId: Int, // Идентификатор записи, в ответ на которую была добавлена текущая
+        fromId: Int,  // Идентификатор автора записи
+        text: String, // Текст записи
+        attachments: Array<Attachment> = emptyArray<Attachment>() // Вложения разного рода
+    ): Comment{
+        postExists(replyPostId)
+        comments += Comment(comments.size, fromId, System.currentTimeMillis(), text, attachments, replyPostId)
+        return comments.last()
     }
 
     fun clear(){
-        posts = emptyArray()
-        id = 0
+        posts = mutableListOf<Post>()
+        comments = mutableListOf<Comment>()
     }
 }
 
 fun main() {
-    val post_test = Post(1, 376, 56, 1692333801, "Начало", arrayOf(Event(), Photo()), likes = Counter(100))
-    val post1 = WallService.add(post_test).also { println(it) }
-    println(post1.likes?.add())
-    println(post1.likes?.add())
-    println(post1.likes?.add())
-    println(post1.likes?.size())
+    val post1 = WallService.addPost(1, "Первый пост")
+    val post2 = WallService.addPost(15, "Второй пост")
+    val post3 = WallService.addPost(15, "Третий пост")
+    println(WallService.getPost(0).text)
 
-    val post2 = WallService.add(Post(2, 34, 67, 1692333801, "Начало2")).also { println(it) }
-    println(post2.likes?.add())
+    WallService.addComment(post1.id, 10, "Комментарий к первому посту")
+    WallService.addComment(5, 10, "Комментарий к несуществующему посту")
 }
