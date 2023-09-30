@@ -46,7 +46,7 @@ class Counter(){
 
 // Базовый класс для сообщений
 open class Post(
-    var id: Int = 0, // Идентификатор записи
+    val id: Int = 0, // Идентификатор записи
     val fromId: Int, // Идентификатор автора записи
     val date: Long, // Дата публикации в формате unixtime
     var text: String, // Текст записи
