@@ -76,7 +76,7 @@ object WallService{
         fromId: Int, // Идентификатор автора записи
         text: String, // Текст записи
         attachments: Array<Attachment> = emptyArray<Attachment>(), // Вложения разного рода
-        ): Post{
+     ): Post{
             posts += Post(posts.size, fromId, System.currentTimeMillis(), text, attachments)
             return posts.last()
     }
